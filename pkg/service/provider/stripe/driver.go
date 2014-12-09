@@ -29,10 +29,8 @@ const (
 )
 
 const (
-	providerTemplateDir  = "stripe"
-	defaultLocale        = "en_US"
-	stripeSecretKey      = ""
-	stripePublishableKey = ""
+	providerTemplateDir = "stripe"
+	defaultLocale       = "en_US"
 )
 
 var (
@@ -182,9 +180,28 @@ func (d *Driver) ProcessHandler() http.Handler {
 			return
 		}
 
-		// stripe charge
-		stripe.Key = stripeSecretKey
+		// get config
+		method, err := payment_method.PaymentMethodByIDTx(tx, p.Config.PaymentMethodID.Int64)
+		if err != nil {
+			log.Error("error retrieving payment method", log15.Ctx{"err": err})
+			d.InternalErrorHandler(p).ServeHTTP(w, r)
+			return
+		}
+		if !method.Active() {
+			log.Error("inactive payment method", log15.Ctx{"err": err})
+			d.InternalErrorHandler(p).ServeHTTP(w, r)
+			return
+		}
 
+		provConf, err := ConfigByPaymentMethodTx(tx, method)
+		if err != nil {
+			log.Error("error retrieving config", log15.Ctx{"err": err})
+			d.InternalErrorHandler(p).ServeHTTP(w, r)
+			return
+		}
+		stripe.Key = provConf.SecretKey
+
+		// stripe charge
 		params := &stripe.ChargeParams{
 			Amount:   uint64(p.Amount),
 			Currency: stripe.Currency(p.Currency),

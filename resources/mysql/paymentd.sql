@@ -457,6 +457,24 @@ ENGINE = InnoDB;
 USE `fritzpay_principal` ;
 
 -- -----------------------------------------------------
+-- Table `fritzpay_payment`.`provider_stripe_config`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fritzpay_payment`.`provider_stripe_config` (
+  `project_id` INT UNSIGNED NOT NULL,
+  `method_key` VARCHAR(64) NOT NULL,
+  `created` DATETIME NOT NULL,
+  `created_by` VARCHAR(64) NOT NULL,
+  `secret_key` TEXT NOT NULL,
+  `public_key` TEXT NOT NULL,
+  PRIMARY KEY (`project_id`, `method_key`, `created`),
+  CONSTRAINT `fk_provider_stripe_config_project_id`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `fritzpay_principal`.`project` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB
+
+-- -----------------------------------------------------
 -- Table `fritzpay_principal`.`principal_metadata`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `fritzpay_principal`.`principal_metadata` ;
@@ -566,6 +584,5 @@ START TRANSACTION;
 USE `fritzpay_payment`;
 INSERT INTO `fritzpay_payment`.`provider` (`name`) VALUES ('fritzpay');
 INSERT INTO `fritzpay_payment`.`provider` (`name`) VALUES ('paypal_rest');
-
+INSERT INTO `fritzpay_payment`.`provider` (`name`) VALUES ('stripe');
 COMMIT;
-

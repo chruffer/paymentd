@@ -350,6 +350,26 @@ CREATE TABLE IF NOT EXISTS `provider_paypal_authorization` (
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
+-- -----------------------------------------------------
+-- Table `fritzpay_payment`.`provider_stripe_config`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `provider_stripe_config` ;
+
+CREATE TABLE IF NOT EXISTS `provider_stripe_config` (
+  `project_id` INT UNSIGNED NOT NULL,
+  `method_key` VARCHAR(64) NOT NULL,
+  `created` DATETIME NOT NULL,
+  `created_by` VARCHAR(64) NOT NULL,
+  `secret_key` TEXT NOT NULL,
+  `public_key` TEXT NOT NULL,
+  PRIMARY KEY (`project_id`, `method_key`, `created`),
+  CONSTRAINT `fk_provider_stripe_config_project_id`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `project` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
