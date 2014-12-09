@@ -459,6 +459,8 @@ USE `fritzpay_principal` ;
 -- -----------------------------------------------------
 -- Table `fritzpay_payment`.`provider_stripe_config`
 -- -----------------------------------------------------
+DROP TABLE IF EXISTS `fritzpay_payment`.`provider_stripe_config` ;
+
 CREATE TABLE IF NOT EXISTS `fritzpay_payment`.`provider_stripe_config` (
   `project_id` INT UNSIGNED NOT NULL,
   `method_key` VARCHAR(64) NOT NULL,
@@ -472,7 +474,7 @@ CREATE TABLE IF NOT EXISTS `fritzpay_payment`.`provider_stripe_config` (
     REFERENCES `fritzpay_principal`.`project` (`id`)
     ON DELETE RESTRICT
     ON UPDATE CASCADE)
-ENGINE = InnoDB
+ENGINE = InnoDB;
 
 -- -----------------------------------------------------
 -- Table `fritzpay_principal`.`principal_metadata`
