@@ -370,6 +370,38 @@ CREATE TABLE IF NOT EXISTS `provider_stripe_config` (
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
+-- -----------------------------------------------------
+-- Table `fritzpay_payment`.`provider_stripe_transaction`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `provider_stripe_transaction` ;
+
+CREATE TABLE IF NOT EXISTS `provider_stripe_transaction` (
+  `project_id` INT UNSIGNED NOT NULL,
+  `payment_id` BIGINT UNSIGNED NOT NULL,
+  `timestamp` BIGINT UNSIGNED NOT NULL,
+  `stripe_charge_id` VARCHAR(64) NULL,
+  `stripe_tx` VARCHAR(64) NULL,
+  `stripe_create_time` INT NULL,
+  `stripe_paid` VARCHAR(32) NULL,
+  `stripe_card_token` VARCHAR(64) NULL,
+  PRIMARY KEY (`project_id`, `payment_id`, `timestamp`),
+  INDEX `fk_provider_stripe_transaction_payment_id_idx` (`payment_id` ASC),
+  INDEX `stripe_charge_id` (`stripe_charge_id` ASC),
+  INDEX `stripe_tx_id` (`stripe_tx` ASC),
+  INDEX `stripe_card_token` (`stripe_card_token` ASC),
+  CONSTRAINT `fk_provider_stripe_transaction_project_id`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `fritzpay_principal`.`project` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_provider_stripe_transaction_payment_id`
+    FOREIGN KEY (`payment_id`)
+    REFERENCES `payment` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

@@ -477,6 +477,37 @@ CREATE TABLE IF NOT EXISTS `fritzpay_payment`.`provider_stripe_config` (
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
+-- Table `fritzpay_payment`.`provider_stripe_transaction`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `fritzpay_payment`.`provider_stripe_transaction` ;
+
+CREATE TABLE IF NOT EXISTS `fritzpay_payment`.`provider_stripe_transaction` (
+  `project_id` INT UNSIGNED NOT NULL,
+  `payment_id` BIGINT UNSIGNED NOT NULL,
+  `timestamp` BIGINT UNSIGNED NOT NULL,
+  `stripe_charge_id` VARCHAR(128) NULL,
+  `stripe_tx` VARCHAR(64) NULL,
+  `stripe_create_time` INT NULL,
+  `stripe_paid` VARCHAR(32) NULL,
+  `stripe_card_token` DATETIME NULL,
+  PRIMARY KEY (`project_id`, `payment_id`, `timestamp`),
+  INDEX `fk_provider_stripe_transaction_payment_id_idx` (`payment_id` ASC),
+  INDEX `stripe_charge_id` (`stripe_charge_id` ASC),
+  INDEX `stripe_tx_id` (`stripe_tx` ASC),
+  INDEX `stripe_card_token` (`stripe_card_token` ASC),
+  CONSTRAINT `fk_provider_stripe_transaction_project_id`
+    FOREIGN KEY (`project_id`)
+    REFERENCES `fritzpay_principal`.`project` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_provider_stripe_transaction_payment_id`
+    FOREIGN KEY (`payment_id`)
+    REFERENCES `fritzpay_payment`.`payment` (`id`)
+    ON DELETE RESTRICT
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+-- -----------------------------------------------------
 -- Table `fritzpay_principal`.`principal_metadata`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `fritzpay_principal`.`principal_metadata` ;

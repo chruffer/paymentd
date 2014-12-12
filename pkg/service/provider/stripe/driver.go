@@ -214,20 +214,35 @@ func (d *Driver) ProcessHandler() http.Handler {
 			log.Error("error retrieving stripe charge object", log15.Ctx{"err": err})
 			d.InternalErrorHandler(nil).ServeHTTP(w, r)
 		}
-		log.Debug("payment", log15.Ctx{"payment": p})
-		log.Debug("charge params", log15.Ctx{"params": params})
-		log.Debug("charge object", log15.Ctx{"charge": ch})
-		// check charge
 
-		// log stripe charge
-		d.SuccessHandler(p).ServeHTTP(w, r)
+		// log stripe charge transaction
+		strTx := &Transaction{
+			ProjectID:  p.ProjectID(),
+			PaymentID:  p.ID(),
+			Timestamp:  time.Now(),
+			ChargeID:   ch.ID,
+			TxID:       ch.Tx.ID,
+			CreateTime: ch.Created,
+			Paid:       ch.Paid,
+			CardToken:  ch.Card.ID,
+		}
+
+		err = InsertTransactionTx(tx, strTx)
+		if err != nil {
+			log.Error("error saving payment transaction", log15.Ctx{"err": err})
+			d.InternalErrorHandler(nil).ServeHTTP(w, r)
+			return
+		}
+
 		commit = true
 		err = tx.Commit()
 		if err != nil {
 			log.Crit("error on commit", log15.Ctx{"err": err})
-			d.InternalErrorHandler(p)
-
+			d.InternalErrorHandler(nil).ServeHTTP(w, r)
+			return
 		}
+
+		d.SuccessHandler(p).ServeHTTP(w, r)
 	})
 }
 
