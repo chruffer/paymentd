@@ -3,7 +3,9 @@ package stripe
 import (
 	"database/sql"
 	"errors"
+	"github.com/fritzpay/paymentd/pkg/paymentd/payment"
 	"github.com/fritzpay/paymentd/pkg/paymentd/payment_method"
+	"time"
 )
 
 var (
@@ -85,6 +87,61 @@ func doInsertConfig(stmt *sql.Stmt, c *Config) error {
 	return err
 }
 
+const selectTransaction = `
+SELECT 
+t.project_id,
+t.payment_id,
+t.timestamp,
+t.stripe_charge_id,
+t.stripe_tx,
+t.stripe_create_time,
+t.stripe_paid,
+t.stripe_card_token
+`
+const selectTransactionByProjectID = selectTransaction + ` 
+FROM provider_stripe_transaction AS t
+WHERE 
+	t.project_id = ?
+	AND 
+	t.payment_id = ?
+	AND
+	t.timestamp = (
+		SELECT MAX(timestamp) FROM provider_stripe_transaction
+		WHERE
+			project_id = t.project_id
+			AND
+			payment_id = t.payment_id
+	)
+`
+
+func scanTransactionRow(row *sql.Row) (*Transaction, error) {
+	t := &Transaction{}
+	var ts int64
+	err := row.Scan(
+		&t.ProjectID,
+		&t.PaymentID,
+		&ts,
+		&t.ChargeID,
+		&t.TxID,
+		&t.CreateTime,
+		&t.Paid,
+		&t.CardToken,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return t, ErrTransactionNotFound
+		}
+		return t, err
+	}
+	t.Timestamp = time.Unix(0, ts)
+	return t, nil
+}
+
+func TransactionCurrentByPaymentIDTx(db *sql.Tx, paymentID payment.PaymentID) (*Transaction, error) {
+	row := db.QueryRow(selectTransactionByProjectID, paymentID.ProjectID, paymentID.PaymentID)
+	return scanTransactionRow(row)
+}
+
 const insertTransaction = `
 INSERT INTO provider_stripe_transaction
 (project_id, payment_id, timestamp, stripe_charge_id, stripe_tx, stripe_create_time, stripe_paid, stripe_card_token)
@@ -129,4 +186,9 @@ func InsertTransactionDB(db *sql.DB, t *Transaction) error {
 		return err
 	}
 	return doInsertTransaction(stmt, t)
+}
+
+func TransactionByPaymentIDTx(db *sql.Tx, paymentID payment.PaymentID) (*Transaction, error) {
+	stx, err := TransactionByPaymentIDTx(db, paymentID)
+	return stx, err
 }
