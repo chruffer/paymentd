@@ -65,12 +65,40 @@ func ConfigByPaymentMethodDB(db *sql.DB, method *payment_method.Method) (*Config
 	return scanConfig(row)
 }
 
+const insertConfig = `
+INSERT INTO provider_stripe_config
+(project_id, method_key, created, created_by, secret_key, public_key)
+VALUES
+(?, ?, ?, ?, ?, ?)
+`
+
+func doInsertConfig(stmt *sql.Stmt, c *Config) error {
+	_, err := stmt.Exec(
+		c.ProjectID,
+		c.MethodKey,
+		c.Created,
+		c.CreatedBy,
+		c.SecretKey,
+		c.PublicKey,
+	)
+	stmt.Close()
+	return err
+}
+
 const insertTransaction = `
 INSERT INTO provider_stripe_transaction
 (project_id, payment_id, timestamp, stripe_charge_id, stripe_tx, stripe_create_time, stripe_paid, stripe_card_token)
 VALUES
 (?, ?, ?, ?, ?, ?, ?, ?)
 `
+
+func InsertConfigTx(db *sql.Tx, c *Config) error {
+	stmt, err := db.Prepare(insertConfig)
+	if err != nil {
+		return err
+	}
+	return doInsertConfig(stmt, c)
+}
 
 func doInsertTransaction(stmt *sql.Stmt, t *Transaction) error {
 	_, err := stmt.Exec(

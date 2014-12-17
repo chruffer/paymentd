@@ -362,12 +362,7 @@ CREATE TABLE IF NOT EXISTS `provider_stripe_config` (
   `created_by` VARCHAR(64) NOT NULL,
   `secret_key` TEXT NOT NULL,
   `public_key` TEXT NOT NULL,
-  PRIMARY KEY (`project_id`, `method_key`, `created`),
-  CONSTRAINT `fk_provider_stripe_config_project_id`
-    FOREIGN KEY (`project_id`)
-    REFERENCES `project` (`id`)
-    ON DELETE RESTRICT
-    ON UPDATE CASCADE)
+  PRIMARY KEY (`project_id`, `method_key`, `created`))
 ENGINE = InnoDB;
 
 -- -----------------------------------------------------
